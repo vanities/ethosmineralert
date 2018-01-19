@@ -8,6 +8,14 @@
 				Details:
 					rig #, # of gpus, # hashrate
 			If the miner goes down, it will send you an error.
+
+
+			TODO:
+			condition: just_booted
+			dualminer_status: enables
+			dualminer_hashes: 719.79
+			temp:
+
 	==========================
 '''
 
@@ -21,7 +29,8 @@ import smtplib
 
 def main():
 	# string containing the json api from ethos
-	json_url = 'http://3d6870.ethosdistro.com/?json=yes'
+	# insert your API URL
+	json_url = 'http://32b32e.ethosdistro.com/?json=yes'
 
 	# make sure we recieve the object from the api
 	try:
