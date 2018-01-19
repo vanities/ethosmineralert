@@ -9,13 +9,6 @@
 					rig #, # of gpus, # hashrate
 			If the miner goes down, it will send you an error.
 
-
-			TODO:
-			condition: just_booted
-			dualminer_status: enables
-			dualminer_hashes: 719.79
-			temp:
-
 	==========================
 '''
 
@@ -49,9 +42,12 @@ def main():
 
 	my_rig = '44a642'
 
+	# grabs the rig from the API
 	rig = rigs[my_rig]
 	print(rig)
 
+
+	# THESE CAN BE CHANGED!
 	fromaddr = 'ethosmineralert@hushmail.com'
 	password = 'ethosmineralert'
 	toaddr = 'mischkeaa@gmail.com'
@@ -59,25 +55,48 @@ def main():
 	port = 587
 
 	# from
-	message = "From: Me <" + fromaddr + ">\n"
+	message = 'From: Me <' + fromaddr + '>\n'
 
 	# to
-	message += "To: Me <" + toaddr + ">\n"	
+	message += 'To: Me <' + toaddr + '>\n'
 
+	# IF RIG IS AVAILABLE 
 	if rig['condition'] != 'unreachable':
-		# subject
-		message += "Subject: Miner is doing great!"
 
-		# num of gpus
-		message += rig['gpus'] + " gpu/s @ "
+		# SINGLE MINING 
+		if rig['dualminer_status'] == 'disabled':
+			# subject
+			message += 'Subject: Miner is doing great! '
 
-		# how many hashes they doing
-		message += rig['miner_hashes'] + " hashes per second."
+			# num of gpus
+			message += rig['gpus'] + ' gpu/s @ '
+
+			# how many hashes they doing
+			message += rig['miner_hashes'] + ' hashes per second of Ethereum (ETH).'
+
+		# DUAL MINING
+		else:
+			# subject
+			message += 'Subject: Dual Miner is doing great! '
+
+			# num of gpus
+			message += rig['gpus'] + ' gpu/s @ '
+
+			# how many hashes they doing
+			message += rig['miner_hashes'] + ' hashes per second of Ethereum (ETH) and '
+
+			message += rig['dualminer_hashes'] + ' hashes per second of ' + rig['dualminer_coin'] + '.'
+
+		# RIG IS AVAILABLE
+		# extras, temp, uptime etc.
+		message += '\n uptime: ' + rig['uptime'] + ' temp: ' + rig['temp'] 
+
+	# RIG IS UNAVAILABLE 
 	else:
 		# subject
-		message += "Subject: Miner has lost connection!\n"
+		message += 'Subject: Miner has lost connection!\n'
 		# body
-		message += "Please go check it out?"
+		message += 'Please go check it out?'
 
 		# make sure it looks good
 		print(message)
@@ -87,23 +106,23 @@ def main():
 		# connect to their server
 		smtpserver = smtplib.SMTP(host,port)
 	except:
-		print ("Error: could not connect to host/port", host, port)
+		print ('Error: could not connect to host/port', host, port)
 
 	smtpserver.ehlo()
 	smtpserver.starttls()
-	print("Server Connected")
+	print('Server Connected')
 
 	# try to authenticate
 	try:
 		# login user/password
 		smtpserver.login(fromaddr, password)
-		print("User/password authenticated")
+		print('User/password authenticated')
 	except SMTPAuthenticationError:
-		print ("Error: could not authenticate user/password")
+		print ('Error: could not authenticate user/password')
 
 	# send it!
 	smtpserver.sendmail(fromaddr, toaddr, message)         
-	print ("Successfully sent email")
+	print ('Successfully sent email')
 
 	# close the server
 	smtpserver.close()
