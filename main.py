@@ -14,7 +14,8 @@
 
 ''' json parsing '''
 from json import loads
-from urllib.request import urlopen, urlretrieve
+from urllib.request import urlopen
+import requests
 
 ''' smtp emailing '''
 import smtplib
@@ -23,24 +24,42 @@ import smtplib
 def main():
 	# string containing the json api from ethos
 	# insert your API URL
-	json_url = 'http://32b32e.ethosdistro.com/?json=yes'
+
+	# change these
+	ethos_number = '32b32e'
+	my_rig = '44a642'
+	eth_address = '0xf7ec051c146810f83c9e2aa94d03c0b096fd5694'
+	
+	# check these urls
+	ethos_url = 'http://' + ethos_number + '.ethosdistro.com/?json=yes'
+	nanopool_url = 'https://eth.nanopool.org/api/v1/balance/' + eth_address
 
 	# make sure we recieve the object from the api
 	try:
-		with urlopen(json_url) as url:
+		with urlopen(ethos_url) as url:
 
-			# read from the url
-			json = loads(url.read().decode())
-			#print(json)
+			# load the json
+			e_json = loads(url.read().decode())
 
 	# if time out
 	except:
-		print('Error: could not access ethos API!')
+		print('Error: could not access the ethos API!')
 
-	rigs = json['rigs']
+	# make sure we recieve the object from the api
+
+	try:
+		content=requests.get(nanopool_url)
+		n_json=content.json()
+		print(n_json)
+
+	# if time out
+	except:
+		print('Error: could not access the nanopool API!')
+
+	rigs = e_json['rigs']
+	balance = n_json['data']
+
 	#print(rigs)
-
-	my_rig = '44a642'
 
 	# grabs the rig from the API
 	rig = rigs[my_rig]
@@ -64,7 +83,7 @@ def main():
 	if rig['condition'] != 'unreachable':
 
 		# SINGLE MINING 
-		if rig['dualminer_status'] == 'disabled':
+		if 'dualminer_status' not in rig:
 			# subject
 			message += 'Subject: Miner is doing great! '
 
@@ -89,7 +108,7 @@ def main():
 
 		# RIG IS AVAILABLE
 		# extras, temp, uptime etc.
-		message += '\n uptime: ' + rig['uptime'] + ' temp: ' + rig['temp'] 
+		message += '\n uptime: ' + rig['uptime'] + ' temp: ' + rig['temp'] + ' balance: ' + str(balance)
 
 	# RIG IS UNAVAILABLE 
 	else:
@@ -98,8 +117,9 @@ def main():
 		# body
 		message += 'Please go check it out?'
 
-		# make sure it looks good
-		print(message)
+
+	# make sure it looks good
+	print(message)
 
 	# try to send the connect to server email
 	try:
